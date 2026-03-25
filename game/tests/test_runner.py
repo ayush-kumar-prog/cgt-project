@@ -38,4 +38,5 @@ for mk in ['MK1', 'MK2', 'MK3']:
         e.leader = cls(nm, e)
         r = e.main_loop(101, 130, mode=cnst.Mode.TEST)
         p = sum((x[1]-x[3])*(100-5*x[1]+3*x[2]) for x in r)
-        print(f"  {nm:20s} vs {mk}: {p:>10.0f}")
+        uLs = [x[1] for x in r]
+        print(f"  {nm:20s} vs {mk}: {p:>10.0f}  uL=[{min(uLs):.1f},{max(uLs):.1f}]")
