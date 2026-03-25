@@ -32,3 +32,21 @@ def run(lcls, mk, mode):
     e.leader = lcls(lcls.__name__, e)
     r = e.main_loop(101, 130, mode=mode)
     return r, sum((x[1]-x[3])*(100-5*x[1]+3*x[2]) for x in r)
+
+# Find our main leader
+leaders = {s.__name__: s for s in all_sub(Leader)}
+main = leaders.get('AdaptiveLeader')
+bounded = leaders.get('BoundedAdaptiveLeader')
+print(f"Leaders found: {list(leaders.keys())}")
+
+# 1. MARK MODE: 20 runs per follower
+print("\n=== MARK MODE (20 runs each) ===")
+for mk in ['MK1', 'MK2', 'MK3']:
+    cls = bounded if mk == 'MK3' else main
+    profits = []
+    for i in range(20):
+        _, p = run(cls, mk, cnst.Mode.MARK)
+        profits.append(p)
+    arr = np.array(profits)
+    print(f"  {mk}: mean={arr.mean():.0f} std={arr.std():.0f}"
+          f" min={arr.min():.0f} max={arr.max():.0f}")
