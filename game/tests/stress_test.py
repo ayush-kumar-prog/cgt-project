@@ -51,3 +51,18 @@ def run_mock(name, fn, noise, trend=0.0, ub=float('inf')):
         opt += bp
     pct = tot/opt*100 if opt > 0 else 0
     print(f'  {name:<35s} {tot:>9.0f}/{opt:>9.0f} = {pct:>5.1f}%')
+
+print('=== STRESS TEST: MK4/5/6 APPROXIMATIONS ===')
+# MK1-like variants (linear, different slopes)
+run_mock('MK1 (baseline)',      lambda u: 2.21+0.74*u, 0.55)
+run_mock('MK4 (steeper slope)', lambda u: 1.0+1.2*u,  0.55)
+run_mock('MK4 (gentler slope)', lambda u: 3.0+0.3*u,  0.55)
+run_mock('MK4 (high noise)',    lambda u: 2.21+0.74*u, 1.5)
+run_mock('MK4 (low intercept)', lambda u: 0.5+0.74*u, 0.55)
+
+print('\n=== MK2-LIKE (with time trends) ===')
+run_mock('MK2 (baseline)',      lambda u: 1.69+0.80*u, 0.26, trend=0.029)
+run_mock('MK5 (slower trend)',  lambda u: 1.69+0.80*u, 0.26, trend=0.01)
+run_mock('MK5 (faster trend)',  lambda u: 1.69+0.80*u, 0.26, trend=0.06)
+run_mock('MK5 (neg trend)',     lambda u: 5.0+0.80*u,  0.26, trend=-0.02)
+run_mock('MK5 (diff slope)',    lambda u: 2.5+0.5*u,   0.30, trend=0.02)
