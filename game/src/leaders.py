@@ -70,13 +70,14 @@ class AdaptiveLeader(Leader):
 
     def _rls_update(self, uL, uF):
         x = np.array([1.0, uL])
-        Px = self.P @ x
+        P2 = self.P[:2, :2] if self.P.shape[0] > 2 else self.P
+        Px = P2 @ x
         gain = Px / (self.lam + x @ Px)
         err = uF - (self.alpha + self.beta * uL)
         theta = np.array([self.alpha, self.beta])
         theta += gain * err
         self.alpha, self.beta = theta[0], theta[1]
-        self.P = (self.P - np.outer(gain, x @ self.P)) / self.lam
+        self.P = (P2 - np.outer(gain, x @ P2)) / self.lam
 
     def new_price(self, date):
         if date > 101:
