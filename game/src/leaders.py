@@ -32,6 +32,13 @@ class AdaptiveLeader(Leader):
         self._detect_time_trend()
         self._fit_ols()
 
+    def _detect_time_trend(self):
+        t = np.arange(1, 101)
+        uF = np.array(self.hist_uF)
+        corr = np.corrcoef(t, uF)[0, 1]
+        if abs(corr) > 0.7:
+            self.use_time = True
+
     def _fit_ols(self):
         uL = np.array(self.all_uL)
         uF = np.array(self.all_uF)
