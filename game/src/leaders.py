@@ -37,3 +37,16 @@ class AdaptiveLeader(Leader):
         res = uF - X @ theta
         self.sigma2 = max(np.var(res), 1e-6)
         self.P = np.linalg.inv(X.T @ X / self.sigma2 + np.eye(2) * 0.001)
+
+    def _optimal_price(self):
+        a, b = self.alpha, self.beta
+        denom = 10 - 6 * b
+        if denom < 0.5:
+            uL = 50.0
+        else:
+            uL = (105 + 3 * a - 3 * b) / denom
+        uL = max(1.01, min(uL, self.UPPER_BOUND))
+        uF_pred = a + b * uL
+        if 100 - 5 * uL + 3 * uF_pred < 5:
+            uL = (95 + 3 * uF_pred) / 5
+        return max(1.01, min(uL, self.UPPER_BOUND))
