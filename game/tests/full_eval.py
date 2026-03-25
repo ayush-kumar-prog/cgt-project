@@ -16,3 +16,19 @@ class Leader:
     def start_simulation(s): pass
     def end_simulation(s): pass
     def get_price_from_date(s, date): return s.engine.exposed_get_price(date)
+
+exec(open('/app/leaders_code.py').read())
+from engine import Engine
+import constants as cnst
+
+def all_sub(cls):
+    r = []
+    for s in cls.__subclasses__():
+        r.append(s); r.extend(all_sub(s))
+    return r
+
+def run(lcls, mk, mode):
+    e = Engine(); e.connect(Leader, lcls.__name__, mk)
+    e.leader = lcls(lcls.__name__, e)
+    r = e.main_loop(101, 130, mode=mode)
+    return r, sum((x[1]-x[3])*(100-5*x[1]+3*x[2]) for x in r)
