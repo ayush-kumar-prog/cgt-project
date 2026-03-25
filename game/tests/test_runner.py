@@ -29,8 +29,13 @@ except FileNotFoundError:
 
 from engine import Engine
 import constants as cnst
-Leader.update_subclass_registry()
-leaders = {s.__name__: s for s in Leader.__subclasses__()}
+def all_subclasses(cls):
+    result = []
+    for s in cls.__subclasses__():
+        result.append(s)
+        result.extend(all_subclasses(s))
+    return result
+leaders = {s.__name__: s for s in all_subclasses(Leader)}
 print(f"Leaders: {list(leaders.keys())}")
 for mk in ['MK1', 'MK2', 'MK3']:
     for nm, cls in leaders.items():
