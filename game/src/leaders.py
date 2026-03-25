@@ -15,7 +15,7 @@ class AdaptiveLeader(Leader):
         self.beta = 0.0
         self.sigma2 = 1.0
         self.P = np.eye(2) * 100.0
-        self.lam = 0.97
+        self.lam = 0.99
         self.all_uL = []
         self.all_uF = []
 
