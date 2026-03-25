@@ -17,3 +17,20 @@ class Leader:
     def start_simulation(s): pass
     def end_simulation(s): pass
     def get_price_from_date(s, date): return s.engine.exposed_get_price(date)
+
+exec(open('/app/leaders_code.py').read())
+
+class MockEngine:
+    def __init__(self, follower_fn, noise, seed=42, trend=0.0):
+        self.fn = follower_fn
+        self.noise = noise
+        self.trend = trend
+        self.rng = np.random.RandomState(seed)
+        self.prices = {}
+        for t in range(1, 101):
+            uL = 1.72 + self.rng.random() * 0.18
+            uF = self.fn(uL) + trend * t + self.rng.normal(0, noise)
+            self.prices[t] = (uL, uF)
+
+    def exposed_get_price(self, date):
+        return self.prices.get(date, (0.0, 0.0))
