@@ -1,20 +1,38 @@
-"""Stackelberg pricing game leaders."""
+## Implementation Approach: Single Leader (AdaptiveLeader)
+## - AdaptiveLeader plays against MK1, MK2, MK4, MK5
+## - BoundedAdaptiveLeader plays against MK3, MK6
+##
+## Methodology:
+## 1. Load 100 days of historical data via get_price_from_date()
+## 2. Filter outliers using Median Absolute Deviation (MAD)
+## 3. Detect time trends via correlation analysis (for MK2/MK5-type followers)
+## 4. Fit reaction function u_F = alpha + beta*u_L [+ gamma*t] via OLS
+## 5. Day 101: Probe at u_L=12 to learn follower behavior outside historical range
+## 6. Days 102+: Compute Stackelberg-optimal price, update via hybrid OLS+RLS
+## 7. Periodic batch OLS refit every 3 days for stability
+
 import numpy as np
 
+class AdaptiveLeader(Leader):
+    """Adaptive Stackelberg leader with exploration and online learning.
 
-class _AdaptiveCore:
-    """Core adaptive logic. Not a Leader subclass - won't appear in GUI."""
+    Uses OLS to learn follower reaction function from historical data,
+    then adaptively explores and exploits via RLS with forgetting factor.
+    Automatically detects time-trending followers and adjusts pricing.
+    """
 
     UPPER_BOUND = float('inf')
 
-    def _init_state(self):
+    def __init__(self, name, engine):
+        super().__init__(name, engine)
         self.hist_uL, self.hist_uF = [], []
         self.alpha, self.beta, self.gamma = 0.0, 0.0, 0.0
-        self.sigma2, self.lam = 1.0, 0.97
+        self.sigma2 = 1.0
         self.P = np.eye(2) * 100.0
+        self.lam = 0.97  # RLS forgetting factor (Lecture 6)
         self.all_uL, self.all_uF, self.all_dates = [], [], []
         self.use_time = False
-        self.rmse = self.mape = self.r_squared = 0.0
+        self.rmse, self.mape, self.r_squared = 0, 0, 0
 
     def start_simulation(self):
         for t in range(1, 101):
@@ -70,10 +88,10 @@ class _AdaptiveCore:
         a = self.alpha + self.gamma * date
         b = self.beta
         denom = 10 - 6 * b
-        uL = (105 + 3 * a - 3 * b) / denom if denom > 0.5 else 50.0
+        uL = (105 + 3*a - 3*b) / denom if denom > 0.5 else 50.0
         uL = max(1.01, min(uL, self.UPPER_BOUND))
-        if 100 - 5 * uL + 3 * (a + b * uL) < 5:
-            uL = (95 + 3 * (a + b * uL)) / 5
+        if 100 - 5*uL + 3*(a + b*uL) < 5:
+            uL = (95 + 3*(a + b*uL)) / 5
         return max(1.01, min(uL, self.UPPER_BOUND))
 
     def _rls_update(self, uL, uF):
@@ -101,17 +119,6 @@ class _AdaptiveCore:
         return self._optimal_price(date)
 
 
-class AdaptiveLeader(_AdaptiveCore, Leader):
-    """For MK1, MK2, MK4, MK5: unbounded strategy space [1, +inf)."""
-    UPPER_BOUND = float('inf')
-    def __init__(self, name, engine):
-        Leader.__init__(self, name, engine)
-        self._init_state()
-
-
-class BoundedAdaptiveLeader(_AdaptiveCore, Leader):
-    """For MK3, MK6: bounded strategy space [1, 15]."""
+class BoundedAdaptiveLeader(AdaptiveLeader):
+    """For MK3/MK6: enforces strategy space [1.00, 15.00]."""
     UPPER_BOUND = 15.0
-    def __init__(self, name, engine):
-        Leader.__init__(self, name, engine)
-        self._init_state()
