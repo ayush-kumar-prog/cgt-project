@@ -42,12 +42,17 @@ class AdaptiveLeader(Leader):
     def _fit_ols(self):
         uL = np.array(self.all_uL)
         uF = np.array(self.all_uF)
+        t = np.array(self.all_dates) if self.use_time else np.zeros_like(uL)
         X = np.column_stack([np.ones_like(uL), uL])
+        if self.use_time:
+            X = np.column_stack([X, t])
         theta = np.linalg.lstsq(X, uF, rcond=None)[0]
         self.alpha, self.beta = theta[0], theta[1]
+        self.gamma = theta[2] if self.use_time else 0.0
         res = uF - X @ theta
         self.sigma2 = max(np.var(res), 1e-6)
-        self.P = np.linalg.inv(X.T @ X / self.sigma2 + np.eye(2) * 0.001)
+        n = 3 if self.use_time else 2
+        self.P = np.linalg.inv(X.T @ X / self.sigma2 + np.eye(n) * 0.001)
 
     def _optimal_price(self):
         a, b = self.alpha, self.beta
