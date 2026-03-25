@@ -26,6 +26,10 @@ class AdaptiveLeader(Leader):
             self.hist_uF.append(uF)
         self.all_uL = list(self.hist_uL)
         self.all_uF = list(self.hist_uF)
+        self.all_dates = list(range(1, 101))
+        self.use_time = False
+        self.gamma = 0.0
+        self._detect_time_trend()
         self._fit_ols()
 
     def _fit_ols(self):
