@@ -68,13 +68,13 @@ class AdaptiveLeader(Leader):
             prev_uL, prev_uF = self.get_price_from_date(date - 1)
             self._rls_update(prev_uL, prev_uF)
         if date == 101:
-            return min(5.0, self.UPPER_BOUND)
+            return min(10.0, self.UPPER_BOUND)
         if date == 102:
             prev_uL, prev_uF = self.get_price_from_date(101)
             self._rls_update(prev_uL, prev_uF)
             hist_mean = np.mean(self.hist_uF)
-            slope_est = (prev_uF - hist_mean) / (5.0 - np.mean(self.hist_uL))
-            if slope_est > 0.3:
-                return min(18.0, self.UPPER_BOUND)
+            slope_est = (prev_uF - hist_mean) / (10.0 - np.mean(self.hist_uL))
+            if slope_est > 0.15:
+                return min(20.0, self.UPPER_BOUND)
             self._fit_ols()
         return self._optimal_price()
