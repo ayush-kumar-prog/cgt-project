@@ -66,7 +66,12 @@ class AdaptiveLeader(Leader):
     def new_price(self, date):
         if date > 101:
             prev_uL, prev_uF = self.get_price_from_date(date - 1)
-            self._rls_update(prev_uL, prev_uF)
+            self.all_uL.append(prev_uL)
+            self.all_uF.append(prev_uF)
+            if (date - 101) % 5 == 0:
+                self._fit_ols()
+            else:
+                self._rls_update(prev_uL, prev_uF)
         if date == 101:
             return min(10.0, self.UPPER_BOUND)
         if date == 102:
