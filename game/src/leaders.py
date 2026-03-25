@@ -29,8 +29,18 @@ class AdaptiveLeader(Leader):
         self.all_dates = list(range(1, 101))
         self.use_time = False
         self.gamma = 0.0
+        self._filter_outliers()
         self._detect_time_trend()
         self._fit_ols()
+
+    def _filter_outliers(self):
+        uF = np.array(self.hist_uF)
+        med = np.median(uF)
+        mad = np.median(np.abs(uF - med))
+        if mad > 0:
+            mask = np.abs(uF - med) < 10 * mad
+            self.all_uL = list(np.array(self.hist_uL)[mask])
+            self.all_uF = list(uF[mask])
 
     def _detect_time_trend(self):
         t = np.arange(1, 101)
